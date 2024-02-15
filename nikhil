@@ -1,0 +1,46 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('continous download')
+        {
+            steps
+            {
+                git 'https://github.com/nikhi22/maven.git'
+            }
+        }
+        stage('continous build')
+        {
+            steps
+            {
+                sh 'mvn package'
+            }
+        }
+        stage('continous deploy')
+        {
+            steps
+            {
+                deploy adapters: [tomcat9(credentialsId: '1fb9076e-196b-499d-b7eb-942b25ef555a', path: '', url: 'http://172.31.23.211:8080')], contextPath: 'dectest', war: '**/*.war'
+            }
+        }
+        stage('continous testing')
+        {
+            steps
+            {
+               git 'https://github.com/nikhi22/automation.git'
+               sh 'java -jar /home/ubuntu/.jenkins/workspace/declarative/testing.jar'
+            }
+        }
+        stage('continous delivery')
+        {
+            steps
+            {
+                input message:'Need approval from manager!',submitter:'nikhil'
+                deploy adapters: [tomcat9(credentialsId: 'b8b99572-cf54-4be4-a72d-ba559cf0d49f', path: '', url: 'http://172.31.31.194:8080')], contextPath: 'decprod', war: '**/*.war'
+            }
+        }
+        
+    }
+    
+}
